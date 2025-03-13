@@ -37,6 +37,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 import paho.mqtt.client as mqtt
 
+from models import Node
 
 #################################
 ### Debug Options
@@ -954,11 +955,12 @@ def maybe_store_nodeinfo_in_db(info):
                 db_connection.commit()
 
                 # Fetch the new record
-                new_record = db_cursor.execute(f'SELECT * FROM {table_name} WHERE user_id=?', (info.id,)).fetchone()
+                new_record = db_cursor.execute(f'SELECT user_id, short_name, long_name FROM {table_name} WHERE user_id=?', (info.id,)).fetchone()
+                new_node = Node(*new_record)
 
                 # Display the new record in the nodeinfo_window widget
-                message = f"{new_record[0]}, {new_record[1]}, {new_record[2]}"
-                update_gui(message, text_widget=nodeinfo_window)
+                # This inserts add the end, which breaks the sorting we start with. 
+                update_gui(new_node.node_list_disp, text_widget=nodeinfo_window)
             else:
                 # Check if long_name or short_name is different, update if necessary
                 if existing_record[1] != info.long_name or existing_record[2] != info.short_name:
@@ -975,6 +977,7 @@ def maybe_store_nodeinfo_in_db(info):
                     updated_record = db_cursor.execute(f'SELECT * FROM {table_name} WHERE user_id=?', (info.id,)).fetchone()
 
                     # Display the updated record in the nodeinfo_window widget
+                    # This appends the record to the end, which breaks sorting
                     message = f"{updated_record[0]}, {updated_record[1]}, {updated_record[2]}"
                     update_gui(message, text_widget=nodeinfo_window)
 
@@ -1324,16 +1327,16 @@ def update_node_list():
             db_cursor = db_connection.cursor()
 
             # Fetch all nodes from the database
-            nodes = db_cursor.execute(f'SELECT user_id, long_name, short_name FROM {table_name}').fetchall()
+            nodes = db_cursor.execute(f'SELECT user_id, short_name, long_name FROM {table_name} ORDER BY short_name COLLATE NOCASE ASC, long_name COLLATE NOCASE ASC').fetchall()
 
             # Clear the display
             nodeinfo_window.config(state=tk.NORMAL)
             nodeinfo_window.delete('1.0', tk.END)
 
             # Display each node in the nodeinfo_window widget
-            for node in nodes:
-                message = f"{node[0]}, {node[1]}, {node[2]}\n"
-                nodeinfo_window.insert(tk.END, message)
+            for node_record in nodes:
+                node = Node(*node_record)
+                nodeinfo_window.insert(tk.END, node.node_list_disp + "\n")
 
             nodeinfo_window.config(state=tk.DISABLED)
 
