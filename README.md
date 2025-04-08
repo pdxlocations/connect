@@ -13,8 +13,8 @@ Many thanks to and inspiration from:<br>
 python3 -m venv connect
 cd connect && source bin/activate
 pip3 install meshtastic paho-mqtt tk cryptography
-git clone https://github.com/pdxlocations/MQTT-Connect-for-Meshtastic
-cd MQTT-Connect-for-Meshtastic
+git clone https://github.com/pdxlocations/connect
+cd connect
 ```
 
 ### Running the Client
