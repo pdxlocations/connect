@@ -13,7 +13,7 @@ MacOS users may need to install tkinter using brew:
 ```bash
 brew install python-tk
 ```
-
+Then create a virtual environment and install Connect:
 ```bash
 python3 -m venv connect
 cd connect && source bin/activate
