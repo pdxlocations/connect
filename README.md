@@ -9,6 +9,11 @@ Many thanks to and inspiration from:<br>
 
 ### Installation
 
+MacOS users may need to install tkinter using brew:
+```bash
+brew install python-tk
+```
+
 ```bash
 python3 -m venv connect
 cd connect && source bin/activate
