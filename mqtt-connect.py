@@ -686,6 +686,7 @@ def publish_message(destination_id):
         encoded_message = mesh_pb2.Data()
         encoded_message.portnum = portnums_pb2.TEXT_MESSAGE_APP
         encoded_message.payload = message_text.encode("utf-8")
+        encoded_message.bitfield = 1
         generate_mesh_packet(destination_id, encoded_message)
         message_entry.delete(0, 'end')
     #else:
@@ -711,6 +712,7 @@ def send_traceroute(destination_id):
         encoded_message = mesh_pb2.Data()
         encoded_message.portnum = portnums_pb2.TRACEROUTE_APP
         encoded_message.want_response = True
+        encoded_message.bitfield = 1
 
         destination_id = int(destination_id[1:], 16)
         generate_mesh_packet(destination_id, encoded_message)
@@ -756,6 +758,7 @@ def send_node_info(destination_id, want_response):
         encoded_message.portnum = portnums_pb2.NODEINFO_APP
         encoded_message.payload = user_payload
         encoded_message.want_response = want_response  # Request NodeInfo back
+        encoded_message.bitfield = 1
 
         # print(encoded_message)
         generate_mesh_packet(destination_id, encoded_message)
@@ -818,6 +821,7 @@ def send_position(destination_id) -> None:
         encoded_message.portnum = portnums_pb2.POSITION_APP
         encoded_message.payload = position_payload
         encoded_message.want_response = True
+        encoded_message.bitfield = 1
 
         generate_mesh_packet(destination_id, encoded_message)
 
@@ -838,6 +842,7 @@ def generate_mesh_packet(destination_id, encoded_message):
     mesh_packet.want_ack = False
     mesh_packet.channel = generate_hash(channel, key)
     mesh_packet.hop_limit = 3
+    mesh_packet.hop_start = 3
 
 
     if key == "":
