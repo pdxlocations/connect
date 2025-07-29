@@ -95,12 +95,12 @@ key_emoji = "\U0001F511"
 encrypted_emoji = "\U0001F512"
 dm_emoji = "\u2192"
 
-client_short_name = "WXE1"
-client_long_name = "WX-Engine"
-lat = "3.007494"
-lon = "101.580010"
-alt = "25"
-client_hw_model = 70
+client_short_name = "MCM"
+client_long_name = "MQTTastic"
+lat = ""
+lon = ""
+alt = ""
+client_hw_model = 255
 node_info_interval_minutes = 15
 
 #################################
