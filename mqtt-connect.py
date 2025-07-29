@@ -83,11 +83,11 @@ record_locations: bool = True
 
 #################################
 ### Default settings
-mqtt_broker = "mqtt.lucifernet.com"
+mqtt_broker = "mqtt.meshtastic.org"
 mqtt_port = 1883
 mqtt_username = "meshdev"
 mqtt_password = "large4cats"
-root_topic = "msh/MY_919/2/e/"
+root_topic = "msh/US/2/e/"
 channel = "LongFast"
 key = "AQ=="
 max_msg_len = mesh_pb2.Constants.DATA_PAYLOAD_LEN
