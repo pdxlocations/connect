@@ -79,7 +79,7 @@ display_dm_emoji: bool = True
 display_lookup_button: bool = False
 display_private_dms: bool = False
 
-record_locations: bool = True
+record_locations: bool = False
 
 #################################
 ### Default settings
