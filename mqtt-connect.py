@@ -1494,9 +1494,9 @@ if sys.platform.startswith('darwin'):
     print("The built in window auto-centering code may help with this\n\n")
 
 # Generate 4 random hexadecimal characters to create a unique node name
-#random_hex_chars = ''.join(random.choices('0123456789abcdef', k=4))
-#node_name = '!abcd' + random_hex_chars
-node_name = '!b03d8888'
+random_hex_chars = ''.join(random.choices('0123456789abcdef', k=4))
+node_name = '!abcd' + random_hex_chars
+
 if not is_valid_hex(node_name, 8, 8):
     print('Invalid generated node name: ' + str(node_name))
     sys.exit(1)
