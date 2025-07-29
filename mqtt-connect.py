@@ -39,6 +39,28 @@ import paho.mqtt.client as mqtt
 
 from models import Node
 
+# Custom datetime adapters and converters to replace deprecated defaults
+def adapt_datetime_iso(val):
+    """Adapt datetime.datetime to timezone-naive ISO 8601 date."""
+    return val.isoformat()
+
+def adapt_datetime_epoch(val):
+    """Adapt datetime.datetime to Unix timestamp."""
+    return int(val.timestamp())
+
+def convert_datetime(val):
+    """Convert ISO 8601 datetime to datetime.datetime object."""
+    return datetime.fromisoformat(val.decode())
+
+def convert_timestamp(val):
+    """Convert Unix timestamp to datetime.datetime object."""
+    return datetime.fromtimestamp(int(val))
+
+# Register the adapters and converters
+sqlite3.register_adapter(datetime, adapt_datetime_iso)
+sqlite3.register_converter("datetime", convert_datetime)
+sqlite3.register_converter("timestamp", convert_timestamp)
+
 #################################
 ### Debug Options
 debug: bool = False
@@ -57,7 +79,7 @@ display_dm_emoji: bool = True
 display_lookup_button: bool = False
 display_private_dms: bool = False
 
-record_locations: bool = False
+record_locations: bool = True
 
 #################################
 ### Default settings
@@ -714,7 +736,12 @@ def send_traceroute(destination_id):
         encoded_message.want_response = True
         encoded_message.bitfield = 1
 
-        destination_id = int(destination_id[1:], 16)
+        # Extract hex ID from complex string format like 'xxxx 🈲 | xxxx_919'
+        # Split by space and take the first part, then remove any leading '!' if present
+        hex_id = destination_id.split()[0]
+        if hex_id.startswith('!'):
+            hex_id = hex_id[1:]
+        destination_id = int(hex_id, 16)
         generate_mesh_packet(destination_id, encoded_message)
 
 def send_node_info(destination_id, want_response):
@@ -1044,7 +1071,7 @@ def maybe_store_position_in_db(node_id, position, rssi=None):
                     db_connection.commit()
                     return
 
-                if timestamp > datetime.strptime(existing_record[2], "%Y-%m-%d %H:%M:%S"):
+                if timestamp > datetime.fromisoformat(existing_record[2]):
                     db_cursor.execute(f'''
                         UPDATE {table_name}
                         SET short_name=?, timestamp=?, latitude=?, longitude=?
@@ -1469,6 +1496,7 @@ if sys.platform.startswith('darwin'):
 # Generate 4 random hexadecimal characters to create a unique node name
 random_hex_chars = ''.join(random.choices('0123456789abcdef', k=4))
 node_name = '!abcd' + random_hex_chars
+
 if not is_valid_hex(node_name, 8, 8):
     print('Invalid generated node name: ' + str(node_name))
     sys.exit(1)
