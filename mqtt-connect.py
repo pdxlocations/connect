@@ -39,6 +39,28 @@ import paho.mqtt.client as mqtt
 
 from models import Node
 
+# Custom datetime adapters and converters to replace deprecated defaults
+def adapt_datetime_iso(val):
+    """Adapt datetime.datetime to timezone-naive ISO 8601 date."""
+    return val.isoformat()
+
+def adapt_datetime_epoch(val):
+    """Adapt datetime.datetime to Unix timestamp."""
+    return int(val.timestamp())
+
+def convert_datetime(val):
+    """Convert ISO 8601 datetime to datetime.datetime object."""
+    return datetime.fromisoformat(val.decode())
+
+def convert_timestamp(val):
+    """Convert Unix timestamp to datetime.datetime object."""
+    return datetime.fromtimestamp(int(val))
+
+# Register the adapters and converters
+sqlite3.register_adapter(datetime, adapt_datetime_iso)
+sqlite3.register_converter("datetime", convert_datetime)
+sqlite3.register_converter("timestamp", convert_timestamp)
+
 #################################
 ### Debug Options
 debug: bool = False
@@ -57,15 +79,15 @@ display_dm_emoji: bool = True
 display_lookup_button: bool = False
 display_private_dms: bool = False
 
-record_locations: bool = False
+record_locations: bool = True
 
 #################################
 ### Default settings
-mqtt_broker = "mqtt.meshtastic.org"
+mqtt_broker = "mqtt.lucifernet.com"
 mqtt_port = 1883
 mqtt_username = "meshdev"
 mqtt_password = "large4cats"
-root_topic = "msh/US/2/e/"
+root_topic = "msh/MY_919/2/e/"
 channel = "LongFast"
 key = "AQ=="
 max_msg_len = mesh_pb2.Constants.DATA_PAYLOAD_LEN
@@ -73,12 +95,12 @@ key_emoji = "\U0001F511"
 encrypted_emoji = "\U0001F512"
 dm_emoji = "\u2192"
 
-client_short_name = "MCM"
-client_long_name = "MQTTastic"
-lat = ""
-lon = ""
-alt = ""
-client_hw_model = 255
+client_short_name = "WXE1"
+client_long_name = "WX-Engine"
+lat = "3.007494"
+lon = "101.580010"
+alt = "25"
+client_hw_model = 70
 node_info_interval_minutes = 15
 
 #################################
@@ -714,7 +736,12 @@ def send_traceroute(destination_id):
         encoded_message.want_response = True
         encoded_message.bitfield = 1
 
-        destination_id = int(destination_id[1:], 16)
+        # Extract hex ID from complex string format like 'xxxx 🈲 | xxxx_919'
+        # Split by space and take the first part, then remove any leading '!' if present
+        hex_id = destination_id.split()[0]
+        if hex_id.startswith('!'):
+            hex_id = hex_id[1:]
+        destination_id = int(hex_id, 16)
         generate_mesh_packet(destination_id, encoded_message)
 
 def send_node_info(destination_id, want_response):
@@ -1044,7 +1071,7 @@ def maybe_store_position_in_db(node_id, position, rssi=None):
                     db_connection.commit()
                     return
 
-                if timestamp > datetime.strptime(existing_record[2], "%Y-%m-%d %H:%M:%S"):
+                if timestamp > datetime.fromisoformat(existing_record[2]):
                     db_cursor.execute(f'''
                         UPDATE {table_name}
                         SET short_name=?, timestamp=?, latitude=?, longitude=?
@@ -1467,8 +1494,9 @@ if sys.platform.startswith('darwin'):
     print("The built in window auto-centering code may help with this\n\n")
 
 # Generate 4 random hexadecimal characters to create a unique node name
-random_hex_chars = ''.join(random.choices('0123456789abcdef', k=4))
-node_name = '!abcd' + random_hex_chars
+#random_hex_chars = ''.join(random.choices('0123456789abcdef', k=4))
+#node_name = '!abcd' + random_hex_chars
+node_name = '!b03d8888'
 if not is_valid_hex(node_name, 8, 8):
     print('Invalid generated node name: ' + str(node_name))
     sys.exit(1)
